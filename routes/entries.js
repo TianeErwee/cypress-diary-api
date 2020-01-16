@@ -1,31 +1,47 @@
 var express = require('express');
 var router = express.Router();
 var EntryService = require('../services/entry.service');
+const mysql = require('mysql');
 
-/* GET customer listing. */
-router.get('/', async function(req, res, next)
-{
-	res.json({error: "Invalid Customer UID."});
+const db = mysql.createConnection ({
+  host: 'localhost',
+  user: 'root',
+  password: 'password',
+  database: 'cypress-diary'
 });
 
-/* adds a new customer to the list */
-router.post('/', async (req, res, next) =>
-{
-	const body = req.body;
+db.connect((err) => {
+  if (err) {
+      throw err;
+  }
+  console.log('Connected to database');
+});
 
+/* GET customer listing. */
+router.get('/list', async function(req, res, next)
+{
+  db.query('SELECT * FROM entries', (err, result, fields) => {
+    if (!!err) {
+      console.log(err);
+    } else {
+      res.send({"statusCode": 200, "statusMessage": result});
+    }
+  });
+});
+
+router.post('/create-entry', async (req, res, next) =>
+{
+  const body = req.body;
 	try
 	{
-		const entry = await EntryService.create(body);
-
-		// if(body.guid != null)
-		// {
-		// 	customer.guid = body.guid;
-		// }
-
-		// res.cookie('guid', customer.guid, { maxAge: 900000, httpOnly: true });
-
-		// created the customer! 
-		return res.status(201).json({ entry: entry });
+    const query = "INSERT INTO entries (`title`, `content`, `date_created`) VALUES ('" + body.title + "', '"+ body.content + "', CURRENT_DATE);";
+    db.query(query, (err, result, fields) => {
+      if (!!err) {
+        console.log(err);
+      } else {
+        res.send({"statusCode": 200, "statusMessage": result});
+      }
+    });
 	}
 	catch(err)
 	{
@@ -39,52 +55,67 @@ router.post('/', async (req, res, next) =>
 	}
 });
 
-// /* retrieves a customer by uid */
-// router.get('/:id', async (req, res, next) =>
-// {
-// 	try
-// 	{
-// 		const customer = await CustomerService.retrieve(req.params.id);
+router.get('/view-entry/:id', async (req, res, next) =>
+{
+	try
+	{
+    const query = "SELECT * FROM entries WHERE id = " + req.params.id + ";";
+    db.query(query, (err, result, fields) => {
+      if (!!err) {
+        console.log(err);
+      } else {
+        res.send({"statusCode": 200, "statusMessage": result});
+      }
+    });
+	}
+	catch(err)
+	{
+		// unexpected error
+		return next(err);
+	}
+});
 
-// 		return res.json({ customer: customer });
-// 	}
-// 	catch(err)
-// 	{
-// 		// unexpected error
-// 		return next(err);
-// 	}
-// });
+/* updates the customer by uid */
+router.put('/update-entry/:id', async (req, res, next) =>
+{
+  const body = req.body;
+	try
+	{
+    const query = "UPDATE entries SET `title` = '" + body.title + "', `content` = '" + body.content + "' WHERE id = " + req.params.id + ";";
+    db.query(query, (err, result, fields) => {
+      if (!!err) {
+        console.log(err);
+      } else {
+        res.send({"statusCode": 200, "statusMessage": result});
+      }
+    });
+	}
+	catch(err)
+	{
+		// unexpected error
+		return next(err);
+	}
+});
 
-// /* updates the customer by uid */
-// router.put('/:id', async (req, res, next) =>
-// {
-// 	try
-// 	{
-// 		const customer = await CustomerService.update(req.params.id, req.body);
-
-// 		return res.json({ customer: customer });
-// 	}
-// 	catch(err)
-// 	{
-// 		// unexpected error
-// 		return next(err);
-// 	}
-// });
-
-// /* removes the customer from the customer list by uid */
-// router.delete('/:id', async (req, res, next) =>
-// {
-// 	try
-// 	{
-// 		const customer = await CustomerService.delete(req.params.id);
-
-// 		return res.json({success: true});
-// 	}
-// 	catch(err)
-// 	{
-// 		// unexpected error
-// 		return next(err);
-// 	}
-// });
+/* removes the customer from the customer list by uid */
+router.delete('/delete-entry/:id', async (req, res, next) =>
+{
+	try
+	{
+    const query = "DELETE FROM entries WHERE id = " + req.params.id + ";";
+    db.query(query, (err, result, fields) => {
+      if (!!err) {
+        console.log(err);
+      } else {
+        res.send({"statusCode": 200, "statusMessage": result});
+      }
+    });
+	}
+	catch(err)
+	{
+		// unexpected error
+		return next(err);
+	}
+});
 
 module.exports = router;
