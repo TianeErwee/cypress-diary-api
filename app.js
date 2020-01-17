@@ -7,6 +7,8 @@ var entries = require('./routes/entries');
 
 var app = express();
 
+require('@cypress/code-coverage/middleware/express')(app);
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser())
