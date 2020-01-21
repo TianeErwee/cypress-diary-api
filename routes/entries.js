@@ -4,10 +4,10 @@ var EntryService = require('../services/entry.service');
 const mysql = require('mysql');
 
 const db = mysql.createConnection ({
-  host: 'localhost',
-  user: 'root',
-  password: 'password',
-  database: 'cypress-diary'
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_DATABASE
 });
 
 db.connect((err) => {
