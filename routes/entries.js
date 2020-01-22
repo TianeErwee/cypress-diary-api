@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var EntryService = require('../services/entry.service');
 const mysql = require('mysql');
 
 const db = mysql.createConnection ({
